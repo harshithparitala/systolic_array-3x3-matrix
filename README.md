@@ -342,7 +342,7 @@ The FPGA synthesis tool maps the design onto the programmable resources availabl
 
 ---
 
-## 4. Timing and Performance Analysis ⏱️
+## 4. Timing and Performance Analysis 
 
 This is the most critical comparison. Both designs were analyzed against a **20 ns clock period**. The primary metric for success is the **Worst Negative Slack (WNS)**, which represents the timing margin. A positive or zero WNS means the design meets the clock speed requirement.
 
