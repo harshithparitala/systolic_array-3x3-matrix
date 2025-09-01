@@ -275,7 +275,7 @@ DESIGN_NAME: "matrix_mult": This must match your top-level Verilog module.
 
 CLOCK_PERIOD: 20.0: We are targeting a 50 MHz clock (20 ns period). This is a safe, conservative target for a design with 8-bit multipliers.
 
-DIE_AREA: "0 0 500 500": We've defined a much larger 500µm x 500µm area to ensure there's enough space for all the logic and to avoid the power grid errors you saw earlier.
+DIE_AREA: "0 0 500 500": We've defined a much larger 500µm x 500µm area to ensure there's enough space for all the logic and to avoid the power grid errors .
 
 FP_CORE_UTIL: 30: We're telling the tools to use 30% of the core area for placing logic cells. This leaves plenty of room for routing.
 
