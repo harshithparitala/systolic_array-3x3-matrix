@@ -172,6 +172,124 @@ reset sequence.
 - Timing Behavior: The results are computed and updated over successive clock cycles, 
 aligning with the expected systolic processing behavior.
 
+
+
+
+
+ASIC Flow using OpenLane :
+
+
+---
+
+The **RTL-to-GDSII flow** is the automated process that transforms an abstract description of a digital circuit (**RTL**) into a detailed physical blueprint (**GDSII**) ready for manufacturing. Think of it as turning an architect's schematic into a complete set of construction plans for a skyscraper.
+
+
+---
+### ## 1. The Inputs: What You Provide
+
+You only need to provide two key items to start the flow.
+
+#### **A. RTL Code (`.v` file)**
+This is your design, written in a hardware description language like **Verilog**. It describes *what* your circuit does in terms of logic and behavior.
+
+* **Example**: `matrix_mult.v`
+* **Purpose**: Defines the circuit's functionality.
+
+#### **B. Configuration File (`config.json`)**
+This file is the "recipe" that guides the tools. It contains all the project-specific settings.
+
+* **Example**: `config.json`
+* **Purpose**: Specifies the top module name, clock speed, physical dimensions (**DIE_AREA**), technology library (**PDK**), and other crucial parameters.
+
+---
+### ## 2. The Flow: Automated Stages ⚙️
+
+When you run a command like `make <design_name>`, OpenLane executes a sequence of complex steps automatically.
+
+#### **A. Synthesis**
+The synthesis tool reads your abstract Verilog code and converts it into a **netlist**—a concrete list of basic logic gates (like AND, OR, flip-flops) from the SKY130 standard cell library.
+* **Input**: Verilog (`.v`)
+* **Output**: Netlist of standard cells.
+
+#### **B. Floorplanning & Power Grid**
+This step defines the chip's physical boundaries (**floorplan**), places the input/output (I/O) pins, and creates the power distribution network (PDN)—the grid of VDD and ground wires that powers the chip.
+* **Input**: Netlist, `config.json`
+* **Output**: A floorplan with a power grid.
+
+#### **C. Placement**
+The placement tool takes the thousands of standard cells from the netlist and finds an optimal physical location for each one inside the floorplan.
+* **Input**: Floorplan, Netlist
+* **Output**: A layout with all cells placed.
+
+#### **D. Clock Tree Synthesis (CTS)**
+This step builds a dedicated network of buffers to distribute the clock signal evenly across the chip, ensuring all parts operate in perfect sync.
+* **Input**: Placed layout
+* **Output**: A layout with a balanced clock tree.
+
+#### **E. Routing**
+The routing tool meticulously draws the metal wires that connect all the placed cells according to the netlist, creating a fully connected circuit.
+* **Input**: Placed layout with clock tree
+* **Output**: A fully routed layout.
+
+#### **F. Signoff**
+This is the final quality assurance stage. The tools perform rigorous checks to ensure the layout is correct and manufacturable.
+* **Design Rule Check (DRC)**: Verifies that the layout doesn't violate any physical manufacturing rules (e.g., minimum wire spacing).
+* **Layout vs. Schematic (LVS)**: Compares the final layout to the original netlist to ensure they are electrically identical.
+
+---
+### ## 3. The Output: The Final Blueprint  GDSII
+
+The main output of the entire flow is the GDSII file.
+
+* **File**: `<design_name>.gds`
+* **Purpose**: This is a database file containing the exact geometric shapes of every layer of the chip. It's the final, verified blueprint that is sent to the semiconductor foundry for fabrication.
+
+---
+### ## 4. Key Commands Summary
+
+* **`make <design_name>`**: Runs the entire, automated RTL-to-GDSII flow for your specified design.
+* **`make display DESIGN=<design_name>`**: A convenient shortcut to open the final GDSII layout of the latest run in the KLayout viewer.
+
+
+```
+config.json
+
+{
+    "PDK": "sky130A",
+    "DESIGN_NAME": "matrix_mult",
+    "VERILOG_FILES": "dir::src/matrix_mult.v",
+    "CLOCK_PORT": "clk",
+    "CLOCK_PERIOD": 20.0,
+    "FP_SIZING": "relative",
+    "DIE_AREA": "0 0 500 500",
+    "FP_CORE_UTIL": 30,
+    "FP_ASPECT_RATIO": 1,
+    "SYNTH_STRATEGY": "AREA 0"
+}
+
+
+```
+
+
+DESIGN_NAME: "matrix_mult": This must match your top-level Verilog module.
+
+CLOCK_PERIOD: 20.0: We are targeting a 50 MHz clock (20 ns period). This is a safe, conservative target for a design with 8-bit multipliers.
+
+DIE_AREA: "0 0 500 500": We've defined a much larger 500µm x 500µm area to ensure there's enough space for all the logic and to avoid the power grid errors you saw earlier.
+
+FP_CORE_UTIL: 30: We're telling the tools to use 30% of the core area for placing logic cells. This leaves plenty of room for routing.
+
+SYNTH_STRATEGY: "AREA 0": This tells the synthesis tool to focus on optimizing for the smallest possible area, which is a good strategy for a first run.
+
+
+Gds file :
+
+<img width="941" height="728" alt="image" src="https://github.com/user-attachments/assets/2fb8ca87-8cf7-4f38-a04c-371dd7d3770a" />
+
+
+
+
+
 References:
 -
 1. Kung, "Why systolic architectures?," in Computer, vol. 15, no. 1, pp. 37-46, Jan. 1982, doi: 
